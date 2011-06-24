@@ -25,13 +25,18 @@ using WatiN.Core.Logging;
 namespace RobotFramework
 {
 	/// <summary>
-	/// Description of MyClass.
+	/// WatinLibrary is a Robot Framework (remote) test library
+	/// that uses the popular WatiN web application testing 
+	/// tool/framework internally. It provides a powerful 
+	/// combination of simple test data syntax and support 
+	/// for multiple browsers, though primarily targeting 
+	/// Internet Explorer, with partial Firefox support.
 	/// </summary>
 	public class WatinLibrary
 	{
 		private string browser;
-		WatiN.Core.IE ie;
-		WatiN.Core.FireFox ff;
+		private WatiN.Core.IE ie;
+		private WatiN.Core.FireFox ff;
 		
 		//no exact matching APIs to RobotFramework Selenium API's?
 		//Get Window Names
@@ -67,8 +72,6 @@ namespace RobotFramework
 		public WatinLibrary()
 		{
 			browser = "ie";
-			ie = new WatiN.Core.IE();
-			ff = new WatiN.Core.FireFox();
 		}
 		
 		/// <summary>
@@ -80,8 +83,6 @@ namespace RobotFramework
 		public WatinLibrary(string pBrowser)
 		{
 			browser = pBrowser;
-			ie = new WatiN.Core.IE();
-			ff = new WatiN.Core.FireFox();
 		}
 		
 		/// <summary>
@@ -90,7 +91,7 @@ namespace RobotFramework
 		/// <param name="url">URL to navigate to.</param>
 		public void go_to(string url)
 		{
-			Console.WriteLine("Opening url '{0}'",url);
+			//Console.WriteLine("Opening url '{0}'",url);
 			if(browser == "ie") ie.GoTo(url);
 			else ff.GoTo(url);
 		}
@@ -192,7 +193,7 @@ namespace RobotFramework
 		/// <param name="locator">Locating identifier for checkbox.</param>
 		public void select_checkbox(string locator)
 		{
-			Console.WriteLine("Selecting checkbox '{0}'.",locator);
+			//Console.WriteLine("Selecting checkbox '{0}'.",locator);
 			if(browser == "ie")
 			{
 				try
@@ -217,6 +218,72 @@ namespace RobotFramework
 			}				
 		}
 		
+		/// <summary>
+		/// Simulates user reloading or refreshing the page.
+		/// </summary>
+		public void reload_page(){
+			if(browser == "ie") ie.Refresh();
+			else ff.Refresh();
+		}
+		
+		/// <summary>
+		/// Opens a new browser instance to given URL.
+		/// 
+		/// Possible values for `browserType` are all the values supported by WatiN
+		/// and some aliases that are defined for convenience. The table below
+		/// lists the aliases for most common supported browsers.
+		/// 
+		/// Use ie for Internet Explorer, ff for Firefox
+        /// </summary>
+		/// <param name="url">URL to open browser to</param>
+		/// <param name="browserType">Type of browser to open (ie, ff, etc.)</param>
+		public void open_browser(string url, string browserType){
+			set_browser_type(browserType);
+			if(browser == "ie") ie = new IE(url);
+			else ff = new FireFox(url);
+		}
+		
+		/// <summary>
+		/// Set browser type used by the library keywords to specified browser type.
+		/// Used primarily to switch between Internet Explorer and Firefox within
+		/// an automation test run/session.
+		/// 
+		/// Use ie for Internet Explorer, ff for Firefox
+		/// </summary>
+		/// <param name="browserType">Browser type to use (ie, ff, etc.)</param>
+		public void set_browser_type(string browserType){
+			browser = browserType;
+		}
+		
+		/// <summary>
+		/// Switches between active/open browsers using a match string 
+		/// pattern of either browser window title or URL.
+		/// 
+		/// Examples:
+		/// | Open Browser        | http://google.com | ff             |
+		/// | Location Should Be  | http://google.com |                |
+		/// | Open Browser        | http://yahoo.com  | ie             |
+		/// | Location Should Be  | http://yahoo.com  |                |
+		/// | Switch Browser      | Google            | # window title |
+		/// | Page Should Contain | I'm feeling lucky |                |
+		/// | Switch Browser      | yahoo.com         | # url          |
+		/// | Page Should Contain | More Yahoo!       |                |
+		/// | Close All Browsers  |                   |                |
+		/// </summary>
+		/// <param name="matchString">Pattern used to find browser to switch to, using window title or URL.</param>
+		public void switch_browser(string matchString){
+			if (browser == "ie") {
+				ie = IE.AttachTo<IE>(Find.ByTitle(matchString) || Find.ByUrl(matchString));
+			} else {
+				ff = FireFox.AttachTo<FireFox>(Find.ByTitle(matchString) || Find.ByUrl(matchString));				
+			}
+		}
+		
+		/// <summary>
+		/// temp dbg
+		/// </summary>
+		public void temp(){
+		}
 		//more WatiN library keywords to be added below when have time...
 	}
 }
